@@ -2,6 +2,10 @@
 
 `dirp` は **Directory Processor** の略で、DSL からディレクトリ構造だけを生成する Go 製 CLI です。
 
+## License
+
+This project is licensed under the MIT License.
+
 ## 目次 / Table of Contents / Sommaire
 
 - [日本語](#日本語-ja)
