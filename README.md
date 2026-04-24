@@ -17,6 +17,7 @@ This project is licensed under the MIT License.
 ### 仕様書
 
 - [日本語仕様書](./dirp_specification_ja.md)
+- [日本語 詳細ガイド](./dirp_usage_ja.md)
 - 他言語: [English](#english-en) / [Français](#français-fr)
 
 ### セットアップ（Windows）
@@ -123,6 +124,7 @@ git add -f dirp.exe
 ### Specifications
 
 - [English Specification](./dirp_specification_en.md)
+- [English Detailed Guide](./dirp_usage_en.md)
 - Other languages: [日本語](#日本語-ja) / [Français](#français-fr)
 
 ### Setup (Windows)
@@ -227,6 +229,7 @@ Or remove `*.exe` from `.gitignore` for your workflow.
 ### Spécifications
 
 - [Spécification française](./dirp_specification_fr.md)
+- [Guide d'utilisation détaillé](./dirp_usage_fr.md)
 - Autres langues : [日本語](#日本語-ja) / [English](#english-en)
 
 ### Installation (Windows)
