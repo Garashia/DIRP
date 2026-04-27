@@ -45,7 +45,10 @@ go build .
 - 兄弟要素の区切り: `,` / `|` / 改行
 - 子階層: `{ ... }`
 - テンプレート展開:
-  - `#(start,end,step)` 例: `node_#(1,5,2)` -> `node_1,node_3,node_5`
+  - `#(end)` / `#(start,end)` / `#(start,end,step)`  
+    例: `node_#(3)` -> `node_1,node_2,node_3`  
+    例: `node_#(3,1)` -> `node_3,node_2,node_1`  
+    例: `node_#(1,5,2)` -> `node_1,node_3,node_5`
   - `@(a,b,c)` 例: `srv_@(web,db)` -> `srv_web,srv_db`
 - Fail-fast な構文エラー通知
 - `-f` 指定時は `path:line:col` 形式でエラー表示
@@ -152,7 +155,10 @@ go build .
 - Sibling separators: `,` / `|` / newline
 - Nested hierarchy with `{ ... }`
 - Template expansion:
-  - `#(start,end,step)` e.g. `node_#(1,5,2)` -> `node_1,node_3,node_5`
+  - `#(end)` / `#(start,end)` / `#(start,end,step)`  
+    e.g. `node_#(3)` -> `node_1,node_2,node_3`  
+    e.g. `node_#(3,1)` -> `node_3,node_2,node_1`  
+    e.g. `node_#(1,5,2)` -> `node_1,node_3,node_5`
   - `@(a,b,c)` e.g. `srv_@(web,db)` -> `srv_web,srv_db`
 - Fail-fast syntax errors
 - `path:line:col` error output when using `-f`
@@ -257,7 +263,10 @@ go build .
 - Séparateurs de fratrie: `,` / `|` / saut de ligne
 - Hiérarchie imbriquée avec `{ ... }`
 - Expansion de templates:
-  - `#(start,end,step)` ex. `node_#(1,5,2)` -> `node_1,node_3,node_5`
+  - `#(fin)` / `#(début,fin)` / `#(début,fin,pas)`  
+    ex. `node_#(3)` -> `node_1,node_2,node_3`  
+    ex. `node_#(3,1)` -> `node_3,node_2,node_1`  
+    ex. `node_#(1,5,2)` -> `node_1,node_3,node_5`
   - `@(a,b,c)` ex. `srv_@(web,db)` -> `srv_web,srv_db`
 - Erreurs syntaxiques en mode fail-fast
 - Format d'erreur `path:line:col` avec `-f`

@@ -15,6 +15,7 @@ func main() {
 	file := flag.String("f", "", "path to a .dirp file")
 	casesFile := flag.String("cases", "", "path to test cases file (one DSL pattern per line)")
 	jsonOut := flag.Bool("json", false, "output AST / errors as JSON (for API integration)")
+	graphMode := flag.Bool("Graph", false, "print directory graph view in ASCII")
 	root := flag.String("root", ".", "output root directory")
 	makeDirs := flag.Bool("mkdir", false, "create directories on filesystem")
 	testMode := flag.Bool("test", false, "debug mode: parse and print only (no directory creation)")
@@ -58,9 +59,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Parsed structure for: %s\n", resp.Source)
-	for _, n := range resp.RawNodes {
-		printTree(n, 0)
+	if *graphMode {
+		fmt.Printf("Graph for: %s\n", resp.Source)
+		printGraphNodes(resp.RawNodes)
+	} else {
+		fmt.Printf("Parsed structure for: %s\n", resp.Source)
+		for _, n := range resp.RawNodes {
+			printTree(n, 0)
+		}
 	}
 	if *testMode && *makeDirs {
 		// デバッグ安全性を優先して -test を勝たせる。

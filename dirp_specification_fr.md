@@ -35,9 +35,14 @@ L'imbrication est définie par des accolades `{ }`.
 
 Une entité peut contenir au maximum **une seule** fonction de gabarit. L'utilisation récursive ou multiple de fonctions au sein d'un même nom est strictement interdite.
 
-### 3.1. Fonction de Plage : `#(début, fin, pas)`
-Génère une séquence numérique.
+### 3.1. Fonction de Plage : `#(...)`
+Génère une séquence numérique. Elle accepte **1 à 3 arguments**.
+- `#(fin)` -> `début=1`, `pas` inféré vers `fin`
+- `#(début,fin)` -> `pas` inféré vers `fin`
+- `#(début,fin,pas)` -> `pas` explicite
 - **Paramètres :** Doivent être des entiers.
+- **Exemple :** `node_#(3)` génère `node_1`, `node_2`, `node_3`.
+- **Exemple :** `node_#(3,1)` génère `node_3`, `node_2`, `node_1`.
 - **Exemple :** `node_#(1, 5, 2)` génère `node_1`, `node_3`, `node_5`.
 
 ### 3.2. Fonction de Liste : `@(item1, item2, ...)`
@@ -48,6 +53,8 @@ Génère une série de répertoires basés sur les éléments listés.
 ### 3.3. Contraintes des Fonctions
 - **Séparateur interne :** Seule la virgule `,` est autorisée à l'intérieur des parenthèses.
 - **Sauts de ligne :** Autorisés entre les arguments (après une virgule), mais strictement interdits à l'intérieur d'une valeur ou d'un nombre.
+- **Début de nom :** `@(a,b)` est valide en début d'entité.
+- **Début de nom :** `#(...)` est invalide en début d'entité (il doit suivre un préfixe texte).
 - **Unicité :** `nom_#(1,3)_@(a,b)` est syntaxiquement invalide.
 
 ---
@@ -59,7 +66,7 @@ Le processeur `dirp` doit interrompre immédiatement l'exécution et signaler un
 1. **Nom Vide :** Présence de séparateurs consécutifs (ex: `A,,B` ou `{,}`) sans nom défini.
 2. **Caractères Réservés :** Utilisation de `{ } ( ) , | # @` à l'intérieur d'un nom de répertoire en dehors de leur fonction syntaxique.
 3. **Déséquilibre :** Accolades ou parenthèses non fermées.
-4. **Syntaxe de Fonction Invalide :** Mauvais nombre d'arguments ou types de données incorrects dans `#( )` ou `@( )`.
+4. **Syntaxe de Fonction Invalide :** Mauvais nombre d'arguments ou types de données incorrects dans `#( )` (`1 à 3 arguments`) ou `@( )`.
 5. **Recursion de Gabarit :** Tentative d'imbriquer une fonction dans une autre.
 
 ---

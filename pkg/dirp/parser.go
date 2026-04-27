@@ -49,7 +49,10 @@ func (p *Parser) Parse() ([]*Node, error) {
 // parseEntity は単一 entity（必要ならテンプレ展開後に複数）を読む。
 func (p *Parser) parseEntity() ([]*Node, error) {
 	namePos := p.curToken.Pos
-	if p.curToken.Type != TokenString {
+	if p.curToken.Type != TokenString && p.curToken.Type != TokenAt {
+		if p.curToken.Type == TokenHash {
+			return nil, NewError(ErrUnexpectedToken, p.curToken.Pos, "range template '#(...)' cannot appear at beginning of entity name")
+		}
 		return nil, NewError(ErrUnexpectedToken, p.curToken.Pos, "expected entity name, got token %q", p.curToken.Literal)
 	}
 
@@ -86,38 +89,64 @@ func (p *Parser) parseEntity() ([]*Node, error) {
 	return nodes, nil
 }
 
-// parseEntityName は "prefix" + ("#(...)" | "@(...)")* を再構成する。
+// parseEntityName は entity 名を token から再構成する。
+// 文頭 "@(...)" は許可し、文頭 "#(...)" は不許可とする。
 func (p *Parser) parseEntityName() (string, error) {
-	name := p.curToken.Literal
+	name := ""
+	for {
+		switch p.curToken.Type {
+		case TokenString:
+			name += p.curToken.Literal
+			p.nextToken()
+		case TokenAt:
+			lit, err := p.parseTemplateLiteral()
+			if err != nil {
+				return "", err
+			}
+			name += lit
+		case TokenHash:
+			if name == "" {
+				return "", NewError(ErrUnexpectedToken, p.curToken.Pos, "range template '#(...)' cannot appear at beginning of entity name")
+			}
+			lit, err := p.parseTemplateLiteral()
+			if err != nil {
+				return "", err
+			}
+			name += lit
+		default:
+			if name == "" {
+				return "", NewError(ErrUnexpectedToken, p.curToken.Pos, "expected entity name")
+			}
+			return name, nil
+		}
+	}
+}
+
+func (p *Parser) parseTemplateLiteral() (string, error) {
+	marker := p.curToken.Literal
+	p.nextToken()
+	if p.curToken.Type != TokenLParen {
+		return "", NewError(ErrMissingDelimiter, p.curToken.Pos, "expected '(' after %s template marker", marker)
+	}
 	p.nextToken()
 
-	for p.curToken.Type == TokenHash || p.curToken.Type == TokenAt {
-		marker := p.curToken.Literal
-		p.nextToken()
-		if p.curToken.Type != TokenLParen {
-			return "", NewError(ErrMissingDelimiter, p.curToken.Pos, "expected '(' after %s template marker", marker)
+	// template 本体は TokenString / TokenComma のみ許可。
+	body := ""
+	for p.curToken.Type != TokenRParen && p.curToken.Type != TokenEOF {
+		switch p.curToken.Type {
+		case TokenString, TokenComma:
+			body += p.curToken.Literal
+		default:
+			return "", NewError(ErrUnexpectedToken, p.curToken.Pos, "unexpected token %q inside template", p.curToken.Literal)
 		}
-		p.nextToken()
-
-		// template 本体は TokenString / TokenComma のみ許可。
-		body := ""
-		for p.curToken.Type != TokenRParen && p.curToken.Type != TokenEOF {
-			switch p.curToken.Type {
-			case TokenString, TokenComma:
-				body += p.curToken.Literal
-			default:
-				return "", NewError(ErrUnexpectedToken, p.curToken.Pos, "unexpected token %q inside template", p.curToken.Literal)
-			}
-			p.nextToken()
-		}
-		if p.curToken.Type != TokenRParen {
-			return "", NewError(ErrMissingDelimiter, p.curToken.Pos, "missing ')' in template for %q", name)
-		}
-		name += marker + "(" + body + ")"
 		p.nextToken()
 	}
-
-	return name, nil
+	if p.curToken.Type != TokenRParen {
+		return "", NewError(ErrMissingDelimiter, p.curToken.Pos, "missing ')' in template")
+	}
+	out := marker + "(" + body + ")"
+	p.nextToken()
+	return out, nil
 }
 
 // parseUntilRBrace は '}' までの entity 群を再帰的に読む。

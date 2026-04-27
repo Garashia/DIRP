@@ -41,8 +41,13 @@ Nested structure is represented by `{ ... }`.
 An entity name can contain **at most one** template function.  
 Recursive or multiple template usage in a single entity is invalid.
 
-### 3.1 Range function `#(start,end,step)`
-Generates a numeric sequence.
+### 3.1 Range function `#(...)`
+Generates a numeric sequence. It accepts **1 to 3 arguments**.
+- `#(end)` -> `start=1`, `step` inferred toward `end`
+- `#(start,end)` -> `step` inferred toward `end`
+- `#(start,end,step)` -> explicit `step`
+- Example: `node_#(3)` -> `node_1`, `node_2`, `node_3`
+- Example: `node_#(3,1)` -> `node_3`, `node_2`, `node_1`
 - Example: `node_#(1,5,2)` -> `node_1`, `node_3`, `node_5`
 
 ### 3.2 List function `@(item1,item2,...)`
@@ -52,6 +57,8 @@ Generates names based on listed items.
 ### 3.3 Constraints
 - Only `,` is allowed as internal separator in function args
 - Newlines between arguments are allowed; newline inside a value/number is not
+- Leading list template is valid (e.g. `@(a,b)`)
+- Leading range template is invalid (`#(...)` must follow a prefix string)
 - `name_#(1,3)_@(a,b)` is syntactically invalid
 
 ---
@@ -62,7 +69,7 @@ Processing must stop immediately for:
 1. Empty name (e.g. `A,,B` or `{,}`)
 2. Illegal reserved-character usage (`{ } ( ) , | # @`)
 3. Unbalanced braces or parentheses
-4. Invalid function argument count/type
+4. Invalid function argument count/type (`#(...)` accepts 1 to 3 args)
 5. Recursive template nesting attempts
 
 ---

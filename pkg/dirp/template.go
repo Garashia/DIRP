@@ -68,25 +68,73 @@ func expandPattern(s string, basePos int) ([]string, error) {
 	return out, nil
 }
 
-// expandRange は #(start,end,step) を厳密に展開する。
+// expandRange は #(end), #(start,end), #(start,end,step) を展開する。
+// - 1引数: start=1, stepは end に向かう向きで自動決定
+// - 2引数: stepは end に向かう向きで自動決定
+// - 3引数: stepを明示指定
 func expandRange(body string, bodyPos int) ([]string, error) {
 	parts := strings.Split(body, ",")
-	if len(parts) != 3 {
-		return nil, NewError(ErrInvalidTemplate, bodyPos, "invalid range template: expected 3 args")
+	if len(parts) < 1 || len(parts) > 3 {
+		return nil, NewError(ErrInvalidTemplate, bodyPos, "invalid range template: expected 1 to 3 args")
 	}
 
-	start, err := strconv.Atoi(strings.TrimSpace(parts[0]))
-	if err != nil {
-		return nil, NewError(ErrInvalidArgument, bodyPos, "invalid range start %q", parts[0])
+	argPos := make([]int, len(parts))
+	offset := 0
+	for i, part := range parts {
+		argPos[i] = bodyPos + offset
+		offset += len(part) + 1
 	}
-	end, err := strconv.Atoi(strings.TrimSpace(parts[1]))
-	if err != nil {
-		return nil, NewError(ErrInvalidArgument, bodyPos+len(parts[0])+1, "invalid range end %q", parts[1])
+
+	toInt := func(idx int, label string) (int, error) {
+		v, convErr := strconv.Atoi(strings.TrimSpace(parts[idx]))
+		if convErr != nil {
+			return 0, NewError(ErrInvalidArgument, argPos[idx], "invalid range %s %q", label, parts[idx])
+		}
+		return v, nil
 	}
-	step, err := strconv.Atoi(strings.TrimSpace(parts[2]))
-	if err != nil {
-		return nil, NewError(ErrInvalidArgument, bodyPos+len(parts[0])+len(parts[1])+2, "invalid range step %q", parts[2])
+
+	var (
+		start int
+		end   int
+		step  int
+		err   error
+	)
+
+	switch len(parts) {
+	case 1:
+		start = 1
+		end, err = toInt(0, "end")
+		if err != nil {
+			return nil, err
+		}
+		step = inferStep(start, end)
+	case 2:
+		start, err = toInt(0, "start")
+		if err != nil {
+			return nil, err
+		}
+		end, err = toInt(1, "end")
+		if err != nil {
+			return nil, err
+		}
+		step = inferStep(start, end)
+	case 3:
+		start, err = toInt(0, "start")
+		if err != nil {
+			return nil, err
+		}
+		end, err = toInt(1, "end")
+		if err != nil {
+			return nil, err
+		}
+		step, err = toInt(2, "step")
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, NewError(ErrInvalidTemplate, bodyPos, "invalid range template: expected 1 to 3 args")
 	}
+
 	if step == 0 {
 		return nil, NewError(ErrInvalidArgument, bodyPos, "range step must not be 0")
 	}
@@ -104,9 +152,16 @@ func expandRange(body string, bodyPos int) ([]string, error) {
 	}
 
 	if len(values) == 0 {
-		return nil, NewError(ErrInvalidTemplate, bodyPos, "range expansion produced no values")
+		return nil, NewError(ErrInvalidTemplate, bodyPos, "range step direction is invalid")
 	}
 	return values, nil
+}
+
+func inferStep(start int, end int) int {
+	if end >= start {
+		return 1
+	}
+	return -1
 }
 
 // expandList は @(a,b,c) を配列へ展開する。
